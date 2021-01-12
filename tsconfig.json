@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceMap": true,
+    "strict": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node", "@types/jest"],
+    "lib": ["es6", "dom"]
+  },
+  "exclude": ["\\.(test|e2e-test)\\.ts$"]
+}

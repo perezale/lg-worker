@@ -1,0 +1,2 @@
+pasada	fecha inicio			fecha fin				esquema		habilitado		nombre
+14		2020-01-10 00:00:00		2020-01-20 23:59:59			22		true			city0

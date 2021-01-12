@@ -1,0 +1,6 @@
+GROBO_API=http://192.168.1.4:8080/api
+AZURE_STORAGE_CONNECTION_STRING=AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://192.168.1.4:10000/devstoreaccount1;QueueEndpoint=http://192.168.1.4:10001/devstoreaccount1;TableEndpoint=http://192.168.1.4:10002/devstoreaccount1;
+BLOB_CONTAINER_NAME=products
+GROBO_PROCESADOR=http://192.168.1.4:3000
+FAST_DISK_MOUNT_DIR=../data
+TILE_CONTAINER_NAME=tiles
