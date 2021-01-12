@@ -19,36 +19,6 @@ axios.defaults.baseURL = process.env.GROBO_API + '/';
 
 //const GROBO_API = process.env.GROBO_API ?? 'http://192.168.7.85:8080/api/';
 
-async function work() {
-    
-  let productosSentinelReady: ProductoSentinelReadyDTO = await this.productoSentinelService.getAllReady();
-  let dataFolder = 'workplan_' + productosSentinelReady.workPlan.pasadaId + '_' + productosSentinelReady.workPlan.esquemaTileId;
-
-  console.log(productosSentinelReady);
-
-  let newFiles = []
-  let storageClient = new BlobStorageClientService();
-  for (const producto of productosSentinelReady.productosSentinel) {
-      console.log('Producto Sentinel Disponible: ' + JSON.stringify(producto));
-
-      let file = await storageClient.downloadProduct(producto.uuid, dataFolder);
-      console.log('Producto Sentinel descargado: ' + file);
-  }
-
-  if (newFiles.length > 0) {
-      await (new FastDiskClientService).saveFile(dataFolder + '/workplan.json', JSON.stringify(productosSentinelReady));
-    
-      //Llama al run del procesador
-      let processorClient = new ProcessorClientService();
-      let processorResponse = await processorClient.run(productosSentinelReady);
-      console.log(processorResponse);
-
-  }
-
-console.log(newFiles);
-}
-
-
 //Parse input file
 
 function parseInputFile(filename){
@@ -82,27 +52,44 @@ async function downloadProducts(entries) {
     for(const entry of entries){
         console.log(entry.fechaInicio)
         if(!entry.habilitado) continue;
+
+        let dateBefore = entry.fechaInicio.getFullYear() + "-" + entry.fechaInicio.getMonth()+1 + '-' + entry.fechaInicio.getDate();
+        let dateAfter = entry.fechaFin.getFullYear() + "-" + entry.fechaFin.getMonth()+1 + '-' + entry.fechaFin.getDate();
+        console.log(`Querying products for ${dateBefore} - ${dateAfter}` )
         
-        let sentinelProducts = await new ProductoSentinelService().getAll({
-            'dateBefore': entry.fechaInicio.getFullYear() + "-" + entry.fechaInicio.getMonth()+1 + '-' + entry.fechaInicio.getDate(),
-            'dateAfter': entry.fechaFin.getFullYear() + "-" + entry.fechaFin.getMonth()+1 + '-' + entry.fechaFin.getDate(),
-        })
-
-
+        let sentinelProducts = [];
+        try {
+            sentinelProducts = await new ProductoSentinelService().getAll({
+                'dateBefore': dateBefore,
+                'dateAfter': dateAfter,
+            })
+        }
+        catch(ex) {
+            console.log('EXCEPTION:' + ex)
+        }
+        
         sentinelProducts.forEach(function(product) {
             let index = products.findIndex(function(item){
                 return item.uuid === product.uuid;
             })
             if(index === -1){
+                console.log("adding product " + product.uuid)
                 products.push(product);
+            }
+            else {
+                console.log("skipping product " + product.uuid)
             }
         });
         
 
     }
 
+   console.log("Total products:" + products.length);
+    console.log(products);
+
+    
     for(const product of products) {
-        let file = await storageClient.downloadProduct(product.uuid, process.env.FAST_DISK_MOUNT_DIR);
+        let file = await storageClient.downloadProduct(product.uuid, 'products');
         console.log('Downloaded file: ' + file);
     }
     
@@ -121,16 +108,16 @@ async function downloadProducts(entries) {
     return sentinelReady;
 }
 
-async function run() {
+async function run(input) {
     let pm = new ProcessManager();
-
-    let input = new Object as ProductoSentinelReadyDTO;
     
     const sharedDiskPath = process.env.FAST_DISK_MOUNT_DIR || '/app/data/'
 
     let dataFolder = 'workplan_' + input.workPlan.pasadaId + '_' + input.workPlan.esquemaTileId;
+
+    fs.mkdirSync(`${sharedDiskPath}/${dataFolder}/`, { "recursive": true });
+    
     let workPlanFilePath = `${sharedDiskPath}/${dataFolder}/workplan.json`;
-    let outputPath = `${sharedDiskPath}/output/${dataFolder}`;
     fs.writeFileSync(workPlanFilePath, JSON.stringify(input));
     
     //pm.run(input);
@@ -144,9 +131,8 @@ async function main(){
     }).argv;
     let entries = parseInputFile(args.input);
     
-    await downloadProducts(entries);
-    //await run();
+    let sentinelReady = await downloadProducts(entries);
+    await run(sentinelReady);
 }
 
 main();
-//work();
