@@ -100,7 +100,21 @@ async function downloadProducts(entries) {
     }
     
     let sentinelReady : ProductoSentinelReadyDTO = {
-        esquemaTileGeojson: {},
+        esquemaTileGeojson: {
+            "type":"FeatureCollection",
+              "features":[
+                 {
+                    "type":"Feature",
+                    "geometry":{
+                       "type":"Polygon",
+                       "coordinates":[ [ [ -61.0625, -39.160316546736759 ], [ -61.0625, -37.718590325588131 ], [ -58.359375, -37.718590325588131 ], [ -58.359375, -39.160316546736759 ], [ -61.0625, -39.160316546736759 ] ] ]
+                    },
+                    "properties":{
+                    }
+                 }
+              ]
+            }
+        },
         workPlan: workPlan,
         productosSentinel: products
     }
